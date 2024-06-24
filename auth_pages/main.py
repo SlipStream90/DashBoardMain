@@ -1,5 +1,7 @@
 from datetime import datetime
 from datetime import date
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from flask import Flask, abort, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap5
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
@@ -121,17 +123,24 @@ def verify():
         otpmaker()
         for x in Store:
             if x[0]==email:
-                content = main # Enter your content here
-                mail = smtplib.SMTP('smtp.gmail.com', 587)
-                mail.ehlo()
-                mail.starttls()
-                mail.login('t3405146@gmail.com', 'cipulacjxurclamn')
-                header = 'To:' + 'User' + '\n' + 'From:' \
-                    + 'Tib' + '\n' + 'Subject:One Time Password\n'
-                content = header + content
-                mail.sendmail('t3405146@gmail.com','adityasingh0602006@gmail.com', content) # (1) = Sender, (2) = Receiver
-                mail.close()
-                return redirect(url_for("otp"))
+                port = 465  # For SSL
+                smtp_server = "smtp.gmail.com"
+                MAIL_ADDRESS = "databasetester015@gmail.com"
+                MAIL_APP_PW = "azszaoypedtvrtua"
+                subject = "New Message"
+                body = f"OTP: {main}"
+                msg = MIMEMultipart()
+                msg['From'] = MAIL_ADDRESS
+                msg['To'] = 'adityasingh0602006@gmail.com'
+                msg['Subject'] = subject
+
+                msg.attach(MIMEText(body, 'plain'))
+    
+                with smtplib.SMTP_SSL(smtp_server, port) as server:
+                    server.login(MAIL_ADDRESS, MAIL_APP_PW)
+                    server.send_message(msg)
+                return redirect(url_for("otp"))  
+
             else:
                 flash("Email Id not matching")    
                 
