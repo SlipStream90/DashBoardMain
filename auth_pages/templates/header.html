@@ -16,8 +16,8 @@
 
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Martian+Mono:wght@100..800&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Martian+Mono:wght@100..800&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link
     rel="stylesheet"
     href="https://fonts.googleapis.com/css?family=Poppins:300,400,700"
@@ -81,10 +81,32 @@
 
     {% endblock %}
 </head>
-
+ 
 <body>
-  
+
+  <header class="p-3  newpew gradient-bg" id="navbar">
+    
+      
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+        <a href="/" class="d-flex align-items-center mb-6  mb-lg-0 text-white text-decoration-none">    
+          <img src="static\assets\nuke.svg"class = "xxx"  height="30",width="30">
+        </a>
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+          
+          <li><a href="#" class="nav-link px-2 ani">About</a></li>
+          <li><a href="{{ url_for('contact') }}" class="nav-link px-2 ani">Contact Us</a></li>
+          
+        </ul>
+
+        <div class="text-end">
+          <a href="{{ url_for('register') }}">
+          <button type="button" class="btn btn-primary">Sign-up</button></a>
+        </div>
+      </div>
+    
+  </header>
 
 </body>
-
 </html>
+
+

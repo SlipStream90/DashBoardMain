@@ -33,8 +33,6 @@ def mysqlconnect():
     global Store
     Store=output
     
- 
-      
     # To close the connection 
     conn.close()    
 
@@ -102,16 +100,16 @@ def register():
 
         return redirect(url_for("login"))
     
-    return render_template("register.html",form=form,current_user=current_user)
+    return render_template("login.html",form=form,current_user=current_user)
 
 def otpmaker():
     key="Test"
-    global totp
     totp=pyotp.TOTP(key,interval=240)
     x=totp.now()
     global main
     main=''.join(x)
 
+    return main
 
 
 #page for 2fa verification
@@ -120,15 +118,15 @@ def verify():
     if request.method=="POST":
         data=request.form
         email=data["email"]
-        otpmaker()
+        otp=otpmaker()
         for x in Store:
             if x[0]==email:
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
-                MAIL_ADDRESS = "ramborudra3@gmail.com"
-                MAIL_APP_PW = "pkseyysjcofditlk"
+                MAIL_ADDRESS = "databasetester015@gmail.com"
+                MAIL_APP_PW = "azszaoypedtvrtua"
                 subject = "New Message"
-                body = f"OTP: {main}"
+                body = f"OTP: {otp}"
                 msg = MIMEMultipart()
                 msg['From'] = MAIL_ADDRESS
                 msg['To'] = 'adityasingh0602006@gmail.com'
@@ -167,8 +165,35 @@ def DashBoard():
 
 
 
+port = 465  # For SSL
+smtp_server = "smtp.gmail.com"
+MAIL_ADDRESS = "ramborudra3@gmail.com"
+MAIL_APP_PW = "pkseyysjcofditlk"
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+     if request.method == "POST":
+         data = request.form
+         send_email(data["name"], data["email"], data["phone"], data["message"])
+         return render_template("contact.html", msg_sent=True)
+     return render_template("contact.html", msg_sent=False,current_user=current_user)
 
 
+def send_email(name, email, phone, message):
+    
+    subject = "New Message"
+    body = f"Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}"
+    
+    msg = MIMEMultipart()
+    msg['From'] = MAIL_ADDRESS
+    msg['To'] = MAIL_ADDRESS
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+    
+    with smtplib.SMTP_SSL(smtp_server, port) as server:
+        server.login(MAIL_ADDRESS, MAIL_APP_PW)
+        server.send_message(msg)
 
 
 
