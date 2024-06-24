@@ -145,7 +145,7 @@ def otp():
         data=request.form
         OTP=data["OTP"]
         if main==OTP:
-            return redirect(url_for("register"))
+            return redirect(url_for("DashBoard"))
         else:
             flash("Incorrect OTP")    
                 
