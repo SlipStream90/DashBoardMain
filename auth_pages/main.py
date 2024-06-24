@@ -123,8 +123,8 @@ def verify():
             if x[0]==email:
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
-                MAIL_ADDRESS = "databasetester015@gmail.com"
-                MAIL_APP_PW = "azszaoypedtvrtua"
+                MAIL_ADDRESS = "ramborudra3@gmail.com"
+                MAIL_APP_PW = "pkseyysjcofditlk"
                 subject = "New Message"
                 body = f"OTP: {otp}"
                 msg = MIMEMultipart()
