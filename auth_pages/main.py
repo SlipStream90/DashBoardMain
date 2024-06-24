@@ -102,7 +102,7 @@ def register():
 
         return redirect(url_for("login"))
     
-    return render_template("login.html",form=form,current_user=current_user)
+    return render_template("register.html",form=form,current_user=current_user)
 
 def otpmaker():
     key="Test"
@@ -125,8 +125,8 @@ def verify():
             if x[0]==email:
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
-                MAIL_ADDRESS = "databasetester015@gmail.com"
-                MAIL_APP_PW = "azszaoypedtvrtua"
+                MAIL_ADDRESS = "ramborudra3@gmail.com"
+                MAIL_APP_PW = "pkseyysjcofditlk"
                 subject = "New Message"
                 body = f"OTP: {main}"
                 msg = MIMEMultipart()
