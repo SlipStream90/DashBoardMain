@@ -17,6 +17,7 @@ import pymysql
 from auth import Auth
 import pyotp
 
+
  
 
 def mysqlconnect(): 
@@ -151,6 +152,9 @@ def otp():
                 
     return render_template("Verify2(otp).html",current_user=current_user)
 
+@app.route("/DashBoard",methods=["GET","POST"])
+def DashBoard():
+    return render_template("DashBoard.html",current_user=current_user)
 
 
 
