@@ -3,18 +3,21 @@
 {% block content %}
 
 <main class="form-signin w-100 m-auto">
-    <form method="post" novalidate="True">
-      <img class="mb-4 pcb" src="static\assets\Designer.png" alt="" width="72" height="57" style="border-radius: 50%;">
-      
-  
-      <div class="form-floating">
-        <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="email">
-        <label for="floatingInput">Email address</label>
-      </div>
-    </br>
-      <button class="btn btn-primary w-100 py-2" type="submit">Submit</button>
-    </form>
-  </main>
 
-{%include "footer.html"%}
-{% endblock %}  
+    <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <img class="mb-4 pcb" src="{{ url_for('static', filename='assets/Designer.png') }}" alt="" width="72" height="57" style="border-radius: 50%;">
+        
+        <div class="form-floating"> 
+            {{ form.email(class="form-control", id="floatingInput", placeholder="name@example.com") }}
+            {{ form.email.label}}
+        </div>
+        <br>
+        
+        {{ form.submit(class="btn btn-primary w-100 py-2") }}
+
+    </form>
+</main>
+
+{% include "footer.html" %}
+{% endblock %}
