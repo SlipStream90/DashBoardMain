@@ -275,7 +275,7 @@ def otp():
         else:
             flash("Incorrect OTP")    
                 
-    return render_template("Verify2(otp).html")
+    return render_template("verify.html")
 
 
 @app.route("/DashBoard",methods=["GET","POST"])
