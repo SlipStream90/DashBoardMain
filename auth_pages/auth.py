@@ -43,7 +43,7 @@ class Auth:
         """Store the user's credentials in the database."""
         try:
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO auth (first_name,last_name,Email,Password,Contact,New_User) VALUES (%s,%s,%s,%s,%s,%s)",(f_name,l_name,email,password,contact,"1"))
+            cursor.execute("INSERT INTO auth (first_name,last_name,Email,Password,Contact) VALUES (%s,%s,%s,%s,%s)",(f_name,l_name,email,password,contact))
             self.connection.commit()
             print("Credentials stored successfully.")
             self.connection.close()

@@ -5,7 +5,7 @@ from flask_bootstrap import Bootstrap5
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegisterForm,VerificationForm
+from forms import RegisterForm,VerificationForm,EmailForm
 import smtplib
 from auth import Auth
 import pymysql
@@ -116,8 +116,7 @@ def login():
 
         if user:
             if check_password_hash(user[1], password):
-                session["test"]=email
-                return redirect(url_for('verify'))
+                return redirect(url_for('mail_otp'))
             else:
                 flash("Invalid password", "error")
         else:
@@ -206,15 +205,21 @@ def register():
         contact = form.contact.data
         password = hash_and_salted_password
 
+        session["first_name"]= first_name
+        session["last_name"]= last_name
+        session["email"]= email
+        session["password"] = password
+        session["EMAIL"] = email
+        session["contact"] = contact
+
         # Check if email already exists
         existing_emails = fetch_email()
-        print(fetch_email())
+
         if email in existing_emails:
             flash("This email is already registered. Please use a different email.", "danger")
         else:
-            auth = Auth().store_credentials(first_name, last_name, email, password, contact)
-            flash("Registration successful! Please log in.", "success")
-            return redirect(url_for("login"))
+            
+            return redirect(url_for("mail_otp"))
 
     return render_template("register.html", form=form)
 
@@ -226,79 +231,62 @@ def otpmaker():
     main=''.join(x)
 
     return main
-@app.route("/forget",methods=["GET","POST"])
-def forgetpassword():
+
+
+#page for 2fa verification
+
+@app.route("/verification", methods=["GET", "POST"])
+def verify():
     form = VerificationForm()
     if form.validate_on_submit():
         email = form.email.data
+        
         otp = otpmaker()
-        store=fetch_email()
+        store = mysqlconnect()
+        email_found = False  # Flag to check if email is found
+        
         for x in store:
-            if x == email:
-                print(x[0])  
+            if x[0] == email:
+                email_found = True
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
                 MAIL_ADDRESS = "ramborudra3@gmail.com"
-                Test_Receiver = "adityasingh0602006@gmail.com"
                 MAIL_APP_PW = "pkseyysjcofditlk"
                 subject = "New Message"
                 body = f"OTP: {otp}"
                 msg = MIMEMultipart()
                 msg['From'] = MAIL_ADDRESS
-                msg['To'] = Test_Receiver
+                msg['To'] = email
                 msg['Subject'] = subject
                 msg.attach(MIMEText(body, 'plain'))
+                
                 with smtplib.SMTP_SSL(smtp_server, port) as server:
                     server.login(MAIL_ADDRESS, MAIL_APP_PW)
                     server.send_message(msg)
-                 # Assuming you have an 'otp' route
-            else:
-                print("Email not found", "error")
-                    
                 
+                flash("OTP sent successfully", "success")
+                return redirect(url_for('login'))  # Assuming you have a 'login' route
+        
+        if not email_found:
+            flash("This email is not registered.", "danger")
+    
     return render_template("verify.html", form=form)
 
 
 
-#page for 2fa verification
-@app.route("/verification", methods=["GET", "POST"])
-def verify():
-    form = VerificationForm()
-    email = session.get("test")
-    print(email)
-    otp = otpmaker()
-    store = fetch_email()
-    email_found = False
+# page for 2fa verification
+@app.route("/OTP",methods=["GET","POST"])
+def otp():
+    if request.method=="POST":
+        data=request.form
+        OTP=data["OTP"]
 
-    for x in store:
-        if x == email:
-            email_found = True
-            break
-
-    if email_found:
-        port = 465  # For SSL
-        smtp_server = "smtp.gmail.com"
-        MAIL_ADDRESS = "ramborudra3@gmail.com"
-        Test_Receiver = email
-        MAIL_APP_PW = "pkseyysjcofditlk"
-        subject = "New Message"
-        body = f"OTP: {otp}"
-        msg = MIMEMultipart()
-        msg['From'] = MAIL_ADDRESS
-        msg['To'] = Test_Receiver
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
-        with smtplib.SMTP_SSL(smtp_server, port) as server:
-            server.login(MAIL_ADDRESS, MAIL_APP_PW)
-            server.send_message(msg)
-
-    if form.validate_on_submit():
-        if email == form.email.data:
-            return redirect(url_for('register'))
+        if main==OTP:
+            return redirect(url_for("DashBoard"))
         else:
-            flash("wrong otp")
-    return render_template("verify.html", form=form)
+            flash("Incorrect OTP")    
 
+    return render_template("Verify2(otp).html")
 
 
 
@@ -312,6 +300,7 @@ port = 465  # For SSL
 smtp_server = "smtp.gmail.com"
 MAIL_ADDRESS = "ramborudra3@gmail.com"
 MAIL_APP_PW = "pkseyysjcofditlk"
+
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
@@ -334,6 +323,7 @@ def send_email(name, email, phone, message):
 
     msg.attach(MIMEText(body, 'plain'))
     
+    
     with smtplib.SMTP_SSL(smtp_server, port) as server:
         server.login(MAIL_ADDRESS, MAIL_APP_PW)
         server.send_message(msg)
@@ -341,13 +331,46 @@ def send_email(name, email, phone, message):
 
 
 
+@app.route("/email-otp", methods=["GET", "POST"])
+def mail_otp():
+    
+    print(not session.get('otp_sent', False))
+    if request.method == "GET" and not session.get('otp_sent', False):
+
+        sent_otp = otpmaker()
+        session['sent_otp'] = sent_otp  # Store the OTP in the session
+        session['otp_sent'] = True  # Mark that the OTP has been sent
+        port = 465  # For SSL
+        smtp_server = "smtp.gmail.com"
+        MAIL_ADDRESS = "ramborudra3@gmail.com"
+        MAIL_APP_PW = "pkseyysjcofditlk"
+        subject = "New Message"
+        body = f"OTP: {sent_otp}"
+        msg = MIMEMultipart()
+        msg['From'] = MAIL_ADDRESS
+        msg['To'] = session.get("EMAIL")
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        with smtplib.SMTP_SSL(smtp_server, port) as server:
+            server.login(MAIL_ADDRESS, MAIL_APP_PW)
+            server.send_message(msg)
 
 
+    form = EmailForm()
+    if form.validate_on_submit():
+        form_otp = form.otp.data
+        sent_otp = session.get('sent_otp')  # Retrieve the OTP from the session
+        if form_otp == sent_otp:
+            auth = Auth().store_credentials(session["first_name"], session["last_name"], session["email"], session["password"], session["contact"])
+            flash("Registration successful! Please log in.", "success")
+            session.pop('otp_sent', None)  # Clear the OTP sent flag
+            return redirect(url_for('login'))
+        else:
+            flash("Invalid OTP", "danger")
 
-
-
-
-
+    return render_template("email_verify.html", form=form)
+        
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
