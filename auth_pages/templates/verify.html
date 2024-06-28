@@ -5,6 +5,17 @@
 
 <main class="form-signin w-100 m-auto">
 
+
+    <div id="otpTimerContainer">
+        <p id="otpTimer">You can request OTP again in 30 seconds.</p>
+        <button
+          id="requestNewOTPBtn"
+          onclick="requestNewOTP()"
+          style="display: none"
+        >
+          Request New OTP
+        </button>
+      </div>
     <form method="post" novalidate>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -20,17 +31,16 @@
         <img class="mb-4 pcb" src="{{ url_for('static', filename='assets/Designer.png') }}" alt="" width="72" height="57" style="border-radius: 50%;">
         
         <div class="form-floating"> 
-
-
             {{ form.email(class="form-control", id="floatingInput", placeholder="name@example.com") }}
             {{ form.email.label}}
         </div>
+        
         <br>
         
         {{ form.submit(class="btn btn-primary w-100 py-2") }}
 
     </form>
-</main>
+    <script src="script.js"></script>
 
-{% include "footer.html" %}
+</main>
 {% endblock %}

@@ -5,7 +5,7 @@ from flask_bootstrap import Bootstrap5
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegisterForm,VerificationForm,EmailForm
+from forms import RegisterForm,VerificationForm,EmailForm,ForgetPass
 import smtplib
 from auth import Auth
 import pymysql
@@ -21,12 +21,20 @@ from flask import flash, redirect, url_for, render_template
 from werkzeug.security import generate_password_hash
 
 
+
 SITE_KEY = "0x4AAAAAAAdUmFGg2g9knIqh"
 SECRET_KEY = "0x4AAAAAAAdUmMJVOcNUpPg6Veq9RP_LucU"
 
+
+HOST = "tib.cvywu8ws0g6h.eu-north-1.rds.amazonaws.com"
+USER = "admin"
+PASSWORD = "Shanu0921"
+DATABASE = "api_testing"
+PORT = 3306
+
 def fetch_email(): 
     # To connect MySQL database 
-    conn = pymysql.connect(host = "tib.cvywu8ws0g6h.eu-north-1.rds.amazonaws.com",user = 'admin',password="Shanu0921",database= 'api_testing',port= 3306) 
+    conn = pymysql.connect(host = HOST,user = USER,password=PASSWORD,database= DATABASE,port= PORT) 
       
     cur = conn.cursor() 
     cur.execute("select Email from auth") 
@@ -39,11 +47,26 @@ def fetch_email():
     return result  
 
 
+def recover_passkey(new_p,email):
+
+    conn = pymysql.connect(host = HOST,user = USER,password=PASSWORD,database= DATABASE,port= PORT)   
+    cur = conn.cursor() 
+    q = "UPDATE auth SET Password = %s WHERE Email = %s"
+    cur.execute(q,(new_p,email)) 
+    conn.commit()
+
+    if cur.rowcount > 0:
+        print("Password")
+
+    conn.close()
+
+
+
+
 
 def mysqlconnect(): 
     # To connect MySQL database 
-    conn = pymysql.connect(host = "tib.cvywu8ws0g6h.eu-north-1.rds.amazonaws.com",user = 'admin',password="Shanu0921",database= 'api_testing',port= 3306) 
-      
+    conn = pymysql.connect(host = HOST,user = USER,password=PASSWORD,database= DATABASE,port= PORT)   
     cur = conn.cursor() 
     cur.execute("select Email,Password from auth") 
     output = cur.fetchall() 
@@ -245,8 +268,12 @@ def verify():
         store = mysqlconnect()
         email_found = False  # Flag to check if email is found
         
+        session["verify_otp"] = otp
+
         for x in store:
+
             if x[0] == email:
+                session["verify_email"]=email
                 email_found = True
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
@@ -264,8 +291,8 @@ def verify():
                     server.login(MAIL_ADDRESS, MAIL_APP_PW)
                     server.send_message(msg)
                 
-                flash("OTP sent successfully", "success")
-                return redirect(url_for('login'))  # Assuming you have a 'login' route
+                #flash("OTP sent successfully", "success")
+                return redirect(url_for('forgot_pass')) # Assuming you have a 'login' route
         
         if not email_found:
             flash("This email is not registered.", "danger")
@@ -295,7 +322,6 @@ def DashBoard():
     return render_template("DashBoard.html")
 
 
-
 port = 465  # For SSL
 smtp_server = "smtp.gmail.com"
 MAIL_ADDRESS = "ramborudra3@gmail.com"
@@ -323,18 +349,14 @@ def send_email(name, email, phone, message):
 
     msg.attach(MIMEText(body, 'plain'))
     
-    
     with smtplib.SMTP_SSL(smtp_server, port) as server:
         server.login(MAIL_ADDRESS, MAIL_APP_PW)
         server.send_message(msg)
 
 
-
-
-@app.route("/email-otp", methods=["GET", "POST"])
+@app.route("/email-otp", methods=["GET","POST"])
 def mail_otp():
     
-    print(not session.get('otp_sent', False))
     if request.method == "GET" and not session.get('otp_sent', False):
 
         sent_otp = otpmaker()
@@ -348,19 +370,23 @@ def mail_otp():
         body = f"OTP: {sent_otp}"
         msg = MIMEMultipart()
         msg['From'] = MAIL_ADDRESS
-        msg['To'] = session.get("EMAIL")
+        msg['To'] = "adityasingh0602006@gmail.com"
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
         with smtplib.SMTP_SSL(smtp_server, port) as server:
             server.login(MAIL_ADDRESS, MAIL_APP_PW)
-            server.send_message(msg)
+            server.send_message(msg)                          
+
 
 
     form = EmailForm()
     if form.validate_on_submit():
         form_otp = form.otp.data
-        sent_otp = session.get('sent_otp')  # Retrieve the OTP from the session
+        sent_otp = session.get('sent_otp') 
+        
+        
+        # Retrieve the OTP from the session
         if form_otp == sent_otp:
             auth = Auth().store_credentials(session["first_name"], session["last_name"], session["email"], session["password"], session["contact"])
             flash("Registration successful! Please log in.", "success")
@@ -372,5 +398,33 @@ def mail_otp():
     return render_template("email_verify.html", form=form)
         
 
+
+
+@app.route("/pass-recovery",methods=["GET","POST"])
+def forgot_pass():
+     
+
+    form = ForgetPass()
+    if form.validate_on_submit():
+
+        hash_and_salted_password = generate_password_hash(
+            form.password.data,
+            method='pbkdf2:sha256',
+            salt_length=8
+        )
+
+        form_otp = form.otp.data
+        sent_otp = session.get('verify_otp')  # Retrieve the OTP from the session
+        if form_otp == sent_otp:
+            recover_passkey(hash_and_salted_password,session.get("verify_email"))
+            session.pop()
+            flash("Password Changed. Please log in.", "success")
+            return redirect(url_for('login'))
+        
+        else:
+            flash("Invalid OTP", "danger")
+    return render_template("forgot_password.html",form=form)
+
+    
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

@@ -43,3 +43,19 @@ class VerificationForm(FlaskForm):
 class EmailForm(FlaskForm):
      otp = PasswordField("Enter OTP",validators=[DataRequired(),])
      submit = SubmitField('Submit')
+
+class ForgetPass(FlaskForm):
+
+        otp = PasswordField("Enter OTP",validators=[DataRequired()])
+        password = PasswordField("New Password", validators=[
+        
+        DataRequired(),
+        Length(min=8, message='Password must be at least 8 characters long.'),
+        Regexp(r'^(?=.*[A-Z])', message='Password must contain at least one uppercase letter.'),
+        Regexp(r'^(?=.*[a-z])', message='Password must contain at least one lowercase letter.'),
+        Regexp(r'^(?=.*\d)', message='Password must contain at least one digit.'),
+        Regexp(r'^(?=.*[!@#$%^&*(),.?":{}|<>])', message='Password must contain at least one special character.')
+
+    ])
+        confirm_password = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
+        submit = SubmitField("Change Password")     
