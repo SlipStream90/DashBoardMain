@@ -1,5 +1,6 @@
 import pymysql as sql
 import hashlib
+import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -42,8 +43,13 @@ class Auth:
     def store_credentials(self,f_name,l_name,email,password,contact): #On registering 
         """Store the user's credentials in the database."""
         try:
+            id = uuid.uuid4()
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO auth (first_name,last_name,Email,Password,Contact) VALUES (%s,%s,%s,%s,%s)",(f_name,l_name,email,password,contact))
+            data="select UID from auth"
+            cursor.execute(data)
+            while id not in data:
+                id = uuid.uuid4()
+            cursor.execute("INSERT INTO auth (first_name,last_name,Email,Password,Contact,UID) VALUES (%s,%s,%s,%s,%s,%s)",(f_name,l_name,email,password,contact,id))
             self.connection.commit()
             print("Credentials stored successfully.")
             self.connection.close()
@@ -64,11 +70,13 @@ class Auth:
         finally:
             cursor.close()
             self.connection.close()   
-        return result       
-
-
-
-   
-
+        return result
+    def test(self):
+        cursor=self.connection.cursor()
+        data="select UID from auth"
+        cursor.execute(data)
+        while id not in data:
+            id = uuid.uuid4()
+        print(id)
 
 

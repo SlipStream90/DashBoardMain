@@ -370,7 +370,7 @@ def mail_otp():
         body = f"OTP: {sent_otp}"
         msg = MIMEMultipart()
         msg['From'] = MAIL_ADDRESS
-        msg['To'] = "adityasingh0602006@gmail.com"
+        msg['To'] = "adirock1234567@gmail.com"
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
