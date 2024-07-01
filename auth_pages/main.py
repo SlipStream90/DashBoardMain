@@ -139,7 +139,7 @@ def login():
 
         if user:
             if check_password_hash(user[1], password):
-                return redirect(url_for('mail_otp'))
+                return redirect(url_for('dashboard'))
             else:
                 flash("Invalid password", "error")
         else:
@@ -424,6 +424,12 @@ def forgot_pass():
         else:
             flash("Invalid OTP", "danger")
     return render_template("forgot_password.html",form=form)
+
+
+@app.route("/dashboard",methods=["GET","POST"])
+def dashboard():
+    return render_template("dashboard.html")
+
 
     
 if __name__ == "__main__":
