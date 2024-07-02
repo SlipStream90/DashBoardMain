@@ -19,7 +19,8 @@ from functools import wraps
 from flask_wtf.csrf import CSRFProtect
 from flask import flash, redirect, url_for, render_template
 from werkzeug.security import generate_password_hash
-
+from pypostman.postman import Postman
+import uuid
 
 
 SITE_KEY = "0x4AAAAAAAdUmFGg2g9knIqh"
@@ -139,7 +140,7 @@ def login():
 
         if user:
             if check_password_hash(user[1], password):
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('mail_otp'))
             else:
                 flash("Invalid password", "error")
         else:
@@ -277,8 +278,8 @@ def verify():
                 email_found = True
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
-                MAIL_ADDRESS = "ramborudra3@gmail.com"
-                MAIL_APP_PW = "pkseyysjcofditlk"
+                MAIL_ADDRESS = "adirock1234567@gmail.com"
+                MAIL_APP_PW = "kovstbfwsjgxvfnh"
                 subject = "New Message"
                 body = f"OTP: {otp}"
                 msg = MIMEMultipart()
@@ -370,7 +371,7 @@ def mail_otp():
         body = f"OTP: {sent_otp}"
         msg = MIMEMultipart()
         msg['From'] = MAIL_ADDRESS
-        msg['To'] = "adirock1234567@gmail.com"
+        msg['To'] = session.get("EMAIL")
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
@@ -391,7 +392,7 @@ def mail_otp():
             auth = Auth().store_credentials(session["first_name"], session["last_name"], session["email"], session["password"], session["contact"])
             flash("Registration successful! Please log in.", "success")
             session.pop('otp_sent', None)  # Clear the OTP sent flag
-            return redirect(url_for('login'))
+            return redirect(url_for('dashboard'))
         else:
             flash("Invalid OTP", "danger")
 
@@ -417,7 +418,7 @@ def forgot_pass():
         sent_otp = session.get('verify_otp')  # Retrieve the OTP from the session
         if form_otp == sent_otp:
             recover_passkey(hash_and_salted_password,session.get("verify_email"))
-            session.pop()
+            session.pop("verify_otp",None)
             flash("Password Changed. Please log in.", "success")
             return redirect(url_for('login'))
         
@@ -429,6 +430,24 @@ def forgot_pass():
 @app.route("/dashboard",methods=["GET","POST"])
 def dashboard():
     return render_template("dashboard.html")
+
+
+def token_gen():
+    id=uuid.UUID()
+    conn = pymysql.connect(host = HOST,user = USER,password=PASSWORD,database= DATABASE,port= PORT)   
+    cur = conn.cursor() 
+    cur.execute("select id from auth") 
+    output = cur.fetchall()
+    while id in output:
+        id=uuid.uuid4()
+    mytest={'test',id}
+    url="https://jsonplaceholder.typicode.com/users"
+    response = requests.post(url, json=mytest)
+    print(response.text)
+
+
+    
+
 
 
     
