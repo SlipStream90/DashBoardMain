@@ -441,15 +441,15 @@ def token_gen():
     while id in output:
         id=uuid.uuid4()
     mytest={'test',id}
-    url="https://jsonplaceholder.typicode.com/users"
+    url="https://jsonplaceholder.typicode.com/users" 
     response = requests.post(url, json=mytest)
-    print(response.text)
+    return id
 
+@app.route(token_gen,methods=["GET","POST"])
+def data_page():
+    return render_template("data.html")
 
     
 
-
-
-    
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

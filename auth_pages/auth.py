@@ -47,7 +47,7 @@ class Auth:
             cursor = self.connection.cursor()
             data="select UID from auth"
             cursor.execute(data)
-            while id not in data:
+            while id in data:
                 id = uuid.uuid4()
             cursor.execute("INSERT INTO auth (first_name,last_name,Email,Password,Contact,UID) VALUES (%s,%s,%s,%s,%s,%s)",(f_name,l_name,email,password,contact,id))
             self.connection.commit()
