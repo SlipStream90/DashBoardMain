@@ -32,3 +32,11 @@ def fetch_users():
     output = cur.fetchall()
     conn.close()
     return output
+
+def Profile_build_main(OrgName,Gender,Post):
+    conn=get_db_connection
+    cur=conn.cursor()
+    cur.execute("INSERT INTO auth (OrgName,Gender,OrgPost) VALUES (%s, %s, %s, %s, %s)",
+                (OrgName,Gender,Post))
+    cur.commit()
+    conn.close()

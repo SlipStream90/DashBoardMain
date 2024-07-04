@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash,jsonify
-from models import fetch_email, recover_passkey, fetch_users
+from models import fetch_email, recover_passkey, fetch_users,Profile_build_main
 from email_service import send_email
-from forms import RegisterForm, VerificationForm, OTPForm, ForgetPass
+from forms import RegisterForm, VerificationForm, OTPForm, ForgetPass,Profile_store
 from utils import otpmaker, check_password
 import requests
 import json
@@ -261,7 +261,21 @@ def register_routes(app,oauth):
                 else:
                     flash("Incorrect OTP", "danger")
 
-        return render_template("email_verify.html", form=form)   
-        
+        return render_template("email_verify.html", form=form)
+    
+
+    @app.route("/profile",methods=["GET","POST"])
+    def profile_build():
+        form=Profile_store()
+        Organization=form.OrgName.data
+        Gender=form.Gender.data
+        Post=form.Post.data
+        Profile_build_main(Organization,Gender,Post)
+   
+
+
+
+
+
 
     

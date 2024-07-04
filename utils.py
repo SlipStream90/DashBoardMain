@@ -4,7 +4,7 @@ import pyotp
 
 def otpmaker():
     key="Test"
-    totp=pyotp.TOTP(key,interval=240)
+    totp=pyotp.TOTP(key,interval=30)
     x=totp.now()
     global main
     main=''.join(x)

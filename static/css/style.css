@@ -195,7 +195,7 @@ body {
   text-decoration: underline;
 }
 #resendBtn:disabled {
-  color: #6c757d;
+  color: #ffffff;
   opacity: 0.5;
   cursor: not-allowed;
 }
