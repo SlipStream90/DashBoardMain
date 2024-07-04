@@ -1,0 +1,42 @@
+{% include "header.html" %}
+{% from "bootstrap5/form.html" import render_form %} 
+{% block content %}
+
+<main class="form-signin w-100 m-auto">
+    <form method="post" novalidate>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {{ form.hidden_tag() }}
+        <img class="mb-4 pcb" src="{{ url_for('static', filename='assets/Designer.png') }}" alt="" width="72" height="57" style="border-radius: 50%;">
+        <h2 class="mb-3">{% block page_title %}{% endblock %}</h2>
+        
+        {% block form_fields %}
+        <div class="form-floating mb-3"> 
+            {{ form.otp(class="form-control", id="floatingInput", placeholder="Enter OTP") }}
+            {{ form.otp.label}}
+        </div>
+        {% endblock %}
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <small class="text-muted">Time remaining: <span id="countdown" class="countdown"></span></small>
+            <button type="button" class="btn btn-link p-0" id="resendBtn" onclick="resendOTP()" disabled>Resend OTP</button>
+        </div>
+        
+        {{ form.submit(class="btn btn-primary w-100 py-2 mb-3") }}
+    </form>
+</main>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/otp.css') }}">
+<script src="{{ url_for('static', filename='js/otp.js') }}"></script>
+
+{% include "footer.html" %}
+{% endblock %}
