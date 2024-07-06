@@ -443,8 +443,7 @@ def token_gen():
     mytest={'test',id}
     url="https://jsonplaceholder.typicode.com/users" 
     response = requests.post(url, json=mytest)
-    x="/"+id
-    return x
+    return id
 
 @app.route(token_gen(),methods=["GET","POST"])
 def data_page():
