@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import pymysql
 from config import DB_CONFIG
 import json
@@ -62,47 +61,23 @@ def data_post():
     print(output)
     main=open("repo.json","ab+")
     json.dump(output)
+    main.close()
     conn.commit()
     conn.close()
 
-   
 
-
-
-   
-=======
-import pymysql
-from config import DB_CONFIG
-
-def get_db_connection():
-    return pymysql.connect(
-        host=DB_CONFIG["HOST"],
-        user=DB_CONFIG["USER"],
-        password=DB_CONFIG["PASSWORD"],
-        database=DB_CONFIG["DATABASE"],
-        port=DB_CONFIG["PORT"]
-    )
-
-def fetch_email():
+def token_gen():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT Email FROM auth")
+    cur.execute("Select D_ID from DEVICE_DATA WHERE {ID_CHECK}=D_ID")
     output = cur.fetchall()
-    conn.close()
-    return [i[0] for i in output]
-
-def recover_passkey(new_password, email):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("UPDATE auth SET Password = %s WHERE Email = %s", (new_password, email))
+    output=hex(output)
     conn.commit()
-    conn.close()
-
-def fetch_users():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT Email, Password FROM auth")
-    output = cur.fetchall()
     conn.close()
     return output
->>>>>>> d9514b76b8bb3845c664cb087a3c05eee1a58c18
+
+
+
+
+
+   
