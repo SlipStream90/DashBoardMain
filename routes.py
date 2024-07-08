@@ -287,8 +287,9 @@ def register_routes(app,oauth):
             conn.commit()
             cur.execute(f"SELECT Token_id from token_device WHERE Device_id={device_id}")
             token=cur.fetchall()
+        token_data=jsonify({"device_id": device_id, "token": token }), 200    
 
-        return jsonify({"device_id": device_id, "token": token }), 200
+        return token_data
 
 
 
