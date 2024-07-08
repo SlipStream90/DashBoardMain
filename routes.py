@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash,jsonify
 from models import fetch_email, recover_passkey, fetch_users,Profile_build_main,get_db_connection
 from email_service import send_email
-from forms import RegisterForm, VerificationForm, OTPForm, ForgetPass,Profile_store
+from forms import RegisterForm, VerificationForm, OTPForm, ForgetPass
 from utils import otpmaker, check_password
 import requests
 import json
@@ -182,7 +182,7 @@ def register_routes(app,oauth):
             if not session.get('OTP_SENT', False) or is_otp_expired() or 'resend_otp' in request.form:
                 send_new_otp(email)
                 session['OTP_SENT'] = True
-                if request.method == "POST":
+                if request.method == "POST":  
                     return "", 204  # Return empty response for AJAX request
 
         if request.method == "POST" and 'resend_otp' not in request.form:
@@ -265,20 +265,36 @@ def register_routes(app,oauth):
         return render_template("email_verify.html", form=form)
     
 
-    @app.route("/profile",methods=["GET","POST"])
-    def profile_build():
+    #@app.route("/profile",methods=["GET","POST"])
+    #def profile_build():
         form=Profile_store()
         Organization=form.OrgName.data
         Gender=form.Gender.data
         Post=form.Post.data
         Profile_build_main(Organization,Gender,Post)
 
+    
 
-
-    def token_pick():
+    @app.route("/device", methods=['GET'])
+    def handle_device():
+        device_id = request.args.get('device_id')
         conn=get_db_connection()
-        cur=conn.cursor()
-        
+        cur = conn.cursor()
+        if not device_id:
+            return jsonify({"error": "No device ID provided"}), 400
+        else:
+            cur.execute(f"UPDATE token_device SET Device_id='{device_id}' WHERE Device_id IS NULL")
+            conn.commit()
+            cur.execute(f"SELECT Token_id from token_device WHERE Device_id={device_id}")
+            token=cur.fetchall()
+
+        return jsonify({"device_id": device_id, "token": token }), 200
+
+
+
+
+
+
 
 
 

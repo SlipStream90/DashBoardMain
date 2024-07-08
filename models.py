@@ -41,19 +41,13 @@ def Profile_build_main(OrgName,Gender,Post):
     cur.commit()
     conn.close()
 
-def data_post():
+def data_post(data_list):
     conn = get_db_connection()
     cur=conn.cursor()
-    f=open("test.json","r+")
-    data=json.load(f)
-    data_list=list(data.values())
     DEVICE_ID=data_list[0]
-    print(data_list)
     placeholders = ', '.join(['%s'] * len(data_list))
     insert_query = f"INSERT INTO DEVICE_DATA (D_ID, SSL_ID, GIS, PV, PC, PP, BV, BC, BP, LV, LC, LP, SSt, BF, MF, LF, LSt, BrL, HEn, BCPr, BDPr, BTem, GPSP) VALUES ({placeholders})"
     cur.execute(insert_query,data_list)
-    f.truncate(0)
-    f.close()
     select_query =f"SELECT * FROM DEVICE_DATA WHERE {DEVICE_ID}=D_ID"
     cur.execute(select_query)
     output = cur.fetchall()
