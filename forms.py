@@ -1,7 +1,8 @@
+
 from flask_wtf import FlaskForm
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField,FileField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, ValidationError
 import re
 
@@ -48,6 +49,7 @@ class OTPForm(FlaskForm):
 
 class ForgetPass(FlaskForm):
 
+        otp = PasswordField("Enter OTP",validators=[DataRequired()])
         password = PasswordField("New Password", validators=[
         
         DataRequired(),
@@ -60,3 +62,10 @@ class ForgetPass(FlaskForm):
     ])
         confirm_password = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
         submit = SubmitField("Change Password")
+
+
+class Profile_store(FlaskForm):
+      Gender=SubmitField("Gender")
+      OrgName=SubmitField("Organization Name")
+      Post=SubmitField("Organization Post")
+      profile_pic=FileField("Profile Picture")

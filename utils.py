@@ -1,8 +1,14 @@
 import random
 from werkzeug.security import check_password_hash
+import pyotp
 
 def otpmaker():
-    return "".join([str(random.randint(0, 9)) for _ in range(6)])
+    key="Test"
+    totp=pyotp.TOTP(key,interval=30)
+    x=totp.now()
+    global main
+    main=''.join(x)
+    return main
 
 def check_password(hashed_password, user_password):
     return check_password_hash(hashed_password, user_password)

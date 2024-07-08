@@ -179,5 +179,24 @@ body {
 }
 
 
-
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+}
+.countdown {
+  font-weight: bold;
+  color: #6c757d;
+}
+#resendBtn {
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+#resendBtn:hover {
+  text-decoration: underline;
+}
+#resendBtn:disabled {
+  color: #ffffff;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
