@@ -40,14 +40,13 @@ class VerificationForm(FlaskForm):
 
 
 
-class OTPForm(FlaskForm):
+class EmailForm(FlaskForm):
      otp = PasswordField("Enter OTP",validators=[DataRequired(),])
      submit = SubmitField('Submit')
 
-
-
 class ForgetPass(FlaskForm):
 
+        otp = PasswordField("Enter OTP",validators=[DataRequired()])
         password = PasswordField("New Password", validators=[
         
         DataRequired(),
@@ -59,4 +58,4 @@ class ForgetPass(FlaskForm):
 
     ])
         confirm_password = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
-        submit = SubmitField("Change Password")
+        submit = SubmitField("Change Password")     

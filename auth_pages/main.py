@@ -19,8 +19,7 @@ from functools import wraps
 from flask_wtf.csrf import CSRFProtect
 from flask import flash, redirect, url_for, render_template
 from werkzeug.security import generate_password_hash
-from pypostman.postman import Postman
-import uuid
+
 
 
 SITE_KEY = "0x4AAAAAAAdUmFGg2g9knIqh"
@@ -278,8 +277,8 @@ def verify():
                 email_found = True
                 port = 465  # For SSL
                 smtp_server = "smtp.gmail.com"
-                MAIL_ADDRESS = "adirock1234567@gmail.com"
-                MAIL_APP_PW = "kovstbfwsjgxvfnh"
+                MAIL_ADDRESS = "ramborudra3@gmail.com"
+                MAIL_APP_PW = "pkseyysjcofditlk"
                 subject = "New Message"
                 body = f"OTP: {otp}"
                 msg = MIMEMultipart()
@@ -371,7 +370,7 @@ def mail_otp():
         body = f"OTP: {sent_otp}"
         msg = MIMEMultipart()
         msg['From'] = MAIL_ADDRESS
-        msg['To'] = session.get("EMAIL")
+        msg['To'] = "adirock1234567@gmail.com"
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
@@ -392,7 +391,7 @@ def mail_otp():
             auth = Auth().store_credentials(session["first_name"], session["last_name"], session["email"], session["password"], session["contact"])
             flash("Registration successful! Please log in.", "success")
             session.pop('otp_sent', None)  # Clear the OTP sent flag
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('login'))
         else:
             flash("Invalid OTP", "danger")
 
@@ -418,7 +417,7 @@ def forgot_pass():
         sent_otp = session.get('verify_otp')  # Retrieve the OTP from the session
         if form_otp == sent_otp:
             recover_passkey(hash_and_salted_password,session.get("verify_email"))
-            session.pop("verify_otp",None)
+            session.pop()
             flash("Password Changed. Please log in.", "success")
             return redirect(url_for('login'))
         
@@ -426,30 +425,6 @@ def forgot_pass():
             flash("Invalid OTP", "danger")
     return render_template("forgot_password.html",form=form)
 
-
-@app.route("/dashboard",methods=["GET","POST"])
-def dashboard():
-    return render_template("dashboard.html")
-
-
-def token_gen():
-    id=str(uuid.uuid4())
-    conn = pymysql.connect(host = HOST,user = USER,password=PASSWORD,database= DATABASE,port= PORT)   
-    cur = conn.cursor() 
-    cur.execute("select id from auth") 
-    output = cur.fetchall()
-    while id in output:
-        id=str(uuid.uuid4())
-    mytest={'test',id}
-    url="https://jsonplaceholder.typicode.com/users" 
-    response = requests.post(url, json=mytest)
-    return id
-
-@app.route(token_gen(),methods=["GET","POST"])
-def data_page():
-    return render_template("data.html")
-
     
-
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
