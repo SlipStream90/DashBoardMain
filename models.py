@@ -33,6 +33,7 @@ def fetch_users():
     output = cur.fetchall()
     conn.close()
     return output
+
 def Profile_build_main(OrgName,Gender,Post):
     conn=get_db_connection
     cur=conn.cursor()
