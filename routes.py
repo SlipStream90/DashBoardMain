@@ -14,6 +14,11 @@ import pytz
 import time
 from datetime import datetime, timedelta
 import json
+from functools import wraps
+
+
+AUTH_TOKEN = "your_secret_auth_token"
+
 
 
 
@@ -290,15 +295,34 @@ def register_routes(app,oauth):
         token_data=jsonify({"device_id": device_id, "token": token }), 200    
 
         return token_data
+        return redirect(url_for("token_route"))
+                        
+
+    AUTH_TOKEN = "your_secret_auth_token"
+                    
     
     @app.route("/token",methods={"GET"})
-    def create_route():
-      token=request.args.get('token')
-      @app.route(f'/{token}', methods=['GET'])
-      def token_route():
-        return jsonify({"token": token})
+    def require_auth(f):
+       @wraps(f)
+       def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header == f"Bearer {AUTH_TOKEN}":
+            return f(*args, **kwargs)
+        return jsonify({"error": "Unauthorized"}), 401
+        return decorated
+        if request.method == 'POST':
+            data = request.json  # Assuming JSON data is sent
+            return jsonify({"message": f"Data received for {token}","received_data": data})
+        else:
+            return jsonify({"message": f"This is the GET route for {token}"})
         for token in tokens:
-            create_route(token)
+            app.add_url_rule(f"/{token}", f"token_route_{token}", 
+                    require_auth(lambda t=token: token_route(t)), 
+                    methods=['GET', 'POST'])
+
+   
+
+
 
 
 
