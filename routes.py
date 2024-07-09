@@ -290,6 +290,16 @@ def register_routes(app,oauth):
         token_data=jsonify({"device_id": device_id, "token": token }), 200    
 
         return token_data
+    
+    @app.route("/token",methods={"GET"})
+    def create_route():
+      token=request.args.get('token')
+      @app.route(f'/{token}', methods=['GET'])
+      def token_route():
+        return jsonify({"token": token})
+        for token in tokens:
+            create_route(token)
+
 
 
 
