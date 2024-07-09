@@ -18,7 +18,7 @@ from functools import wraps
 import os
 from functools import wraps
 from werkzeug.security import safe_str_cmp
-
+import secrets
 
 AUTH_TOKEN = "your_secret_auth_token"
 
@@ -298,13 +298,18 @@ def register_routes(app,oauth):
                 if auth_type.lower() != 'bearer':
                     return jsonify({"error": "Bearer token required"}), 401
                 
-                if not safe_str_cmp(token, SECRET_TOKEN):
+                if not secrets.compare_digest(token, SECRET_TOKEN):
                     return jsonify({"error": "Invalid token"}), 401
             except ValueError:
                 return jsonify({"error": "Invalid Authorization header format"}), 401
 
             return f(*args, **kwargs)
         return decorated
+
+    @app.route('/protected')
+    @require_auth
+    def protected():
+        return jsonify({"message": "This is a protected route"})
 
 
     @app.route("/device", methods=['GET'])
