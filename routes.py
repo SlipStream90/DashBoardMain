@@ -280,45 +280,58 @@ def register_routes(app,oauth):
 
     
 
+    #SECRET_TOKEN = os.environ.get('SECRET_TOKEN', 'default_secret_token')
+    SECRET_TOKEN = "tR7Hs9Ky3Lm1Pq4Xw2Zb8Nf5Vj7Cd6"
+
+    def require_auth(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return jsonify({"error": "Authorization header is missing"}), 401
+            
+            try:
+                auth_type, token = auth_header.split()
+                if auth_type.lower() != 'bearer':
+                    return jsonify({"error": "Bearer token required"}), 401
+                
+                if not safe_str_cmp(token, SECRET_TOKEN):
+                    return jsonify({"error": "Invalid token"}), 401
+            except ValueError:
+                return jsonify({"error": "Invalid Authorization header format"}), 401
+
+            return f(*args, **kwargs)
+        return decorated
+
+
     @app.route("/device", methods=['GET'])
+    @require_auth
     def handle_device():
         device_id = request.args.get('device_id')
-        conn=get_db_connection()
+        conn = get_db_connection()
         cur = conn.cursor()
+        
         if not device_id:
             return jsonify({"error": "No device ID provided"}), 400
-        else:
-            cur.execute(f"UPDATE token_device SET Device_id='{device_id}' WHERE Device_id IS NULL")
+        
+        try:
+            # Use parameterized queries to prevent SQL injection
+            cur.execute("UPDATE token_device SET Device_id = %s WHERE Device_id IS NULL", (device_id,))
             conn.commit()
-            cur.execute(f"SELECT Token_id from token_device WHERE Device_id={device_id}")
-            token=cur.fetchall()
-        token_data=jsonify({"device_id": device_id, "token": token }), 200    
-
-        return token_data
-        return redirect(url_for("token_route"))
-                        
-
-    AUTH_TOKEN = "your_secret_auth_token"
-                    
-    
-    @app.route("/token",methods={"GET"})
-    def require_auth(f):
-       @wraps(f)
-       def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if auth_header and auth_header == f"Bearer {AUTH_TOKEN}":
-            return f(*args, **kwargs)
-        return jsonify({"error": "Unauthorized"}), 401
-        return decorated
-        if request.method == 'POST':
-            data = request.json  # Assuming JSON data is sent
-            return jsonify({"message": f"Data received for {token}","received_data": data})
-        else:
-            return jsonify({"message": f"This is the GET route for {token}"})
-        for token in tokens:
-            app.add_url_rule(f"/{token}", f"token_route_{token}", 
-                    require_auth(lambda t=token: token_route(t)), 
-                    methods=['GET', 'POST'])
+            
+            cur.execute("SELECT Token_id FROM token_device WHERE Device_id = %s", (device_id,))
+            token = cur.fetchall()
+            
+            token_data = jsonify({"device_id": device_id, "token": token}), 200
+            return token_data
+        
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"error": str(e)}), 500
+        
+        finally:
+            cur.close()
+            conn.close()
 
    
 
