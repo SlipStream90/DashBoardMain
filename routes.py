@@ -285,9 +285,6 @@ def register_routes(app, oauth):
 
         return render_template("email_verify.html", form=form)
 
-
-
-
     def fetch_user_profile(email):
         logging.debug(f"Fetching profile for email: {email}")
         try:
@@ -325,3 +322,96 @@ def register_routes(app, oauth):
             return redirect(url_for("login"))
         
         return render_template("profile.html", user_info=user_info, person_data=person_data, access_token=access_token, profile=profile)
+        
+    #SECRET_TOKEN = os.environ.get('SECRET_TOKEN', 'default_secret_token')
+    SECRET_TOKEN = "tR7Hs9Ky3Lm1Pq4Xw2Zb8Nf5Vj7Cd6"
+
+    def require_auth(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+         auth_header = request.headers.get('Authorization')
+         if not auth_header:
+            return jsonify({"error": "Authorization header is missing"}), 401
+         try:
+            auth_type, token = auth_header.split()
+            
+            if auth_type.lower() != 'bearer':
+                return jsonify({"error": "Bearer token required"}), 401
+            
+            # Use secrets.compare_digest for secure string comparison
+            if not secrets.compare_digest(token, SECRET_TOKEN):
+                return jsonify({"error": "Invalid token"}), 401
+         except ValueError:
+            return jsonify({"error": "Invalid Authorization header format"}), 401
+         return f(*args, **kwargs)
+        return decorated
+    
+
+    @app.route('/protected')
+    @require_auth
+    def protected():
+        return jsonify({"message": "This is a protected route"})
+        # If authentication is successful, proceed to execute the decorated function
+        return f(*args, **kwargs)
+        return decorated
+
+
+    @app.route("/device", methods=['GET'])
+    @require_auth
+    def handle_device():
+        device_id = request.args.get('device_id')
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        if not device_id:
+            return jsonify({"error": "No device ID provided"}), 400
+        
+        try:
+            # Use parameterized queries to prevent SQL injection
+            cur.execute("UPDATE token_device SET Device_id = %s WHERE Device_id IS NULL", (device_id,))
+            conn.commit()
+            
+            cur.execute("SELECT Token_id FROM token_device WHERE Device_id = %s", (device_id,))
+            token = cur.fetchall()
+            
+            token_data = jsonify({"device_id": device_id, "token": token}), 200
+            return token_data
+        
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"error": str(e)}), 500
+        
+        finally:
+            cur.close()
+            conn.close()
+            
+    @app.route("/token",methods=["GET"])        
+    def token_verification():
+        token = request.args.get('token')
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM token_device WHERE Token_id = %s", (token,))
+        token_data = cur.fetchall()
+        if token_data:
+            for token_entry in token_data:
+                token_id = token_entry[0]
+                session['token_id'] = token_id
+                return redirect(url_for('device_data'))
+        else:
+            return jsonify({"message": "Token is invalid"}), 401
+
+    @app.route("/device_data",methods=['GET'])
+    def device_data():
+        conn = get_db_connection()
+        cur = conn.cursor()
+        token_id=session.get('token_id')
+        cur.execute("SELECT * FROM DEVICE_DATA")
+        dev_data=cur.fetchall()
+        return render_template('token_page.html', token=token_id)
+        
+
+
+
+
+
+
