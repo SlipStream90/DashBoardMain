@@ -17,8 +17,8 @@ import json
 from functools import wraps
 import os
 from functools import wraps
-from werkzeug.security import safe_str_cmp
 import secrets
+
 
 AUTH_TOKEN = "your_secret_auth_token"
 
@@ -289,27 +289,31 @@ def register_routes(app,oauth):
     def require_auth(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            auth_header = request.headers.get('Authorization')
-            if not auth_header:
-                return jsonify({"error": "Authorization header is missing"}), 401
+         auth_header = request.headers.get('Authorization')
+         if not auth_header:
+            return jsonify({"error": "Authorization header is missing"}), 401
+         try:
+            auth_type, token = auth_header.split()
             
-            try:
-                auth_type, token = auth_header.split()
-                if auth_type.lower() != 'bearer':
-                    return jsonify({"error": "Bearer token required"}), 401
-                
-                if not secrets.compare_digest(token, SECRET_TOKEN):
-                    return jsonify({"error": "Invalid token"}), 401
-            except ValueError:
-                return jsonify({"error": "Invalid Authorization header format"}), 401
-
-            return f(*args, **kwargs)
+            if auth_type.lower() != 'bearer':
+                return jsonify({"error": "Bearer token required"}), 401
+            
+            # Use secrets.compare_digest for secure string comparison
+            if not secrets.compare_digest(token, SECRET_TOKEN):
+                return jsonify({"error": "Invalid token"}), 401
+         except ValueError:
+            return jsonify({"error": "Invalid Authorization header format"}), 401
+         return f(*args, **kwargs)
         return decorated
+    
 
     @app.route('/protected')
     @require_auth
     def protected():
         return jsonify({"message": "This is a protected route"})
+        # If authentication is successful, proceed to execute the decorated function
+        return f(*args, **kwargs)
+        return decorated
 
 
     @app.route("/device", methods=['GET'])
@@ -340,6 +344,31 @@ def register_routes(app,oauth):
         finally:
             cur.close()
             conn.close()
+    @app.route("/token",methods=["GET"])        
+    def token_verification():
+        token = request.args.get('token')
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM token_device WHERE Token_id = %s", (token,))
+        token_data = cur.fetchall()
+        if token_data:
+            for token_entry in token_data:
+                token_id = token_entry[0]
+                session['token_id'] = token_id
+                return redirect(url_for('device_data'))
+        else:
+            return jsonify({"message": "Token is invalid"}), 401
+
+    @app.route("/device_data",methods=['GET'])
+    def device_data():
+        conn = get_db_connection()
+        cur = conn.cursor()
+        token_id=session.get('token_id')
+        cur.execute("SELECT * FROM DEVICE_DATA")
+        dev_data=cur.fetchall()
+        return render_template('token_page.html', token=token_id)
+
+        
 
    
 

@@ -16,3 +16,5 @@ __pycache__/models.cpython-312.pyc
 __pycache__/utils.cpython-312.pyc
 __pycache__/routes.cpython-312.pyc
 *.pyc
+__pycache__/routes.cpython-312.pyc
+templates/token_page.html
